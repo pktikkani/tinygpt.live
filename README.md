@@ -2,7 +2,7 @@
 
 A real GPT running entirely in your browser. No backend, no API keys — just a transformer learning to generate names in real time.
 
-Inspired by [Andrej Karpathy's](https://github.com/karpathy) beautifully minimal pure-Python GPT — "the most atomic way to train and inference a GPT" — ported entirely to TypeScript and wrapped in an interactive visualization. Watch tokens flow through attention heads, step through training, inspect what the model learns, and generate names with adjustable temperature.
+Inspired by [Andrej Karpathy's](https://gist.github.com/karpathy/8627fe009c40f57531cb18360106ce95) beautifully minimal pure-Python GPT — "the most atomic way to train and inference a GPT" — ported entirely to TypeScript and wrapped in an interactive visualization. Watch tokens flow through attention heads, step through training, inspect what the model learns, and generate names with adjustable temperature.
 
 ## What You Can Do
 
@@ -50,7 +50,7 @@ The model trains on ~200 common names (emma, oliver, sophia...) and learns chara
 
 ## Credits
 
-The GPT engine is a TypeScript port of Andrej Karpathy's [llm.c](https://github.com/karpathy/llm.c) / pure-Python GPT — a ~150-line implementation that distills a transformer down to its essence. All credit for the elegant original architecture goes to him. This project adds the interactive browser-based visualization layer on top.
+The GPT engine is a TypeScript port of [Andrej Karpathy's pure-Python GPT gist](https://gist.github.com/karpathy/8627fe009c40f57531cb18360106ce95) — a ~150-line implementation that distills a transformer down to its essence. All credit for the elegant original architecture goes to him. This project adds the interactive browser-based visualization layer on top.
 
 ## License
 
