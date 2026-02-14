@@ -11,7 +11,7 @@ export default function Navigation() {
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
         <Link href="/" className="flex items-center gap-2">
           <span className="text-amber glow-amber text-lg font-bold tracking-wider">
-            NEURAL FORGE
+            tinyGPT
           </span>
           <span className="text-muted text-xs">v0.1</span>
         </Link>

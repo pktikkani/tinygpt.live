@@ -51,7 +51,7 @@ export default function Home() {
             className="mb-8"
           >
             <h1 className="text-amber glow-amber text-3xl font-bold tracking-wider mb-2">
-              NEURAL FORGE
+              tinyGPT
             </h1>
             <p className="text-muted text-sm max-w-xl">
               A real GPT running in your browser. Port of Karpathy&apos;s

@@ -8,7 +8,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Neural Forge — Interactive GPT Visualizer",
+  title: "tinyGPT — Interactive GPT Visualizer",
   description:
     "Watch tokens flow through a real GPT in your browser. Inspect attention heads, control temperature, step through training.",
 };
