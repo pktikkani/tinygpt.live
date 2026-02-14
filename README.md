@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# tinyGPT.live
 
-## Getting Started
+A real GPT running entirely in your browser. No backend, no API keys — just a transformer learning to generate names in real time.
 
-First, run the development server:
+Built as an interactive visualization of a pure-Python GPT, ported to TypeScript. Watch tokens flow through attention heads, step through training, inspect what the model learns, and generate names with adjustable temperature.
+
+## What You Can Do
+
+- **Train step-by-step** — Click "Step" and watch the loss drop from ~3.3 (random guessing) to under 1.0 (actually learned). Set a target loss and let it auto-train.
+- **Generate names** — Slide the temperature from 0.05 (conservative) to 1.5 (wild) and generate character-level names.
+- **Watch tokens flow** — Type a name and see it pass through Input → Embedding → Attention → MLP → Output in real time.
+- **Inspect attention heads** — Click H0-H3 to see which letters are paying attention to which. Bright = high attention.
+- **Understand the architecture** — Each layer shows what's actually happening to the word being processed, with real token IDs, matrix dimensions, and attention pair counts.
+
+## The Model
+
+| | tinyGPT | GPT-4 |
+|---|---|---|
+| Parameters | ~5,000 | ~1,800,000,000,000 |
+| Training data | 200 names | The internet |
+| Generates | Single names | Essays, code, poetry |
+| Runs on | Your browser | Massive GPU clusters |
+
+Same algorithm. Same architecture. Just a few orders of magnitude smaller.
+
+## Tech Stack
+
+- Next.js 16 + React 19
+- TypeScript (full GPT engine, no dependencies)
+- Tailwind CSS v4
+- Motion 12 (animations)
+- Recharts (loss chart)
+
+## Run Locally
 
 ```bash
+git clone https://github.com/pktikkani/tinygpt.live.git
+cd tinygpt.live
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## How It Works
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The entire GPT — tokenizer, embeddings, multi-head attention, MLP, softmax, cross-entropy loss, backpropagation with autograd, Adam optimizer — runs as scalar TypeScript in the browser. No WebGL, no WASM, no workers. Just math.
 
-## Learn More
+The model trains on ~200 common names (emma, oliver, sophia...) and learns character-level patterns: names often start with vowels, "th" goes together, names end with "a" or "n". After enough training, it generates surprisingly plausible new names.
 
-To learn more about Next.js, take a look at the following resources:
+## License
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT

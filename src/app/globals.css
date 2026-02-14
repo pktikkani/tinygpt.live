@@ -1,26 +1,121 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: #fafafa;
+  --color-foreground: #1a1a1a;
+  --color-amber: #d97706;
+  --color-amber-dim: #92600a;
+  --color-amber-glow: #f59e0b;
+  --color-green: #16a34a;
+  --color-green-dim: #15803d;
+  --color-green-glow: #22c55e;
+  --color-surface: #ffffff;
+  --color-surface-light: #f3f4f6;
+  --color-surface-border: #e5e7eb;
+  --color-muted: #6b7280;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --color-background: #050505;
+    --color-foreground: #e0e0e0;
+    --color-amber: #f59e0b;
+    --color-amber-dim: #92600a;
+    --color-amber-glow: #fbbf24;
+    --color-green: #22c55e;
+    --color-green-dim: #15803d;
+    --color-green-glow: #4ade80;
+    --color-surface: #0a0a0a;
+    --color-surface-light: #141414;
+    --color-surface-border: #1e1e1e;
+    --color-muted: #666666;
   }
 }
 
+@theme inline {
+  --color-background: var(--color-background);
+  --color-foreground: var(--color-foreground);
+  --color-amber: var(--color-amber);
+  --color-amber-dim: var(--color-amber-dim);
+  --color-amber-glow: var(--color-amber-glow);
+  --color-green: var(--color-green);
+  --color-green-dim: var(--color-green-dim);
+  --color-green-glow: var(--color-green-glow);
+  --color-surface: var(--color-surface);
+  --color-surface-light: var(--color-surface-light);
+  --color-surface-border: var(--color-surface-border);
+  --color-muted: var(--color-muted);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-mono), monospace;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-surface-border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-muted);
+}
+
+/* Glow effects — only visible in dark mode */
+@media (prefers-color-scheme: dark) {
+  .glow-amber {
+    text-shadow: 0 0 10px rgba(245, 158, 11, 0.5), 0 0 20px rgba(245, 158, 11, 0.3);
+  }
+  .glow-green {
+    text-shadow: 0 0 10px rgba(34, 197, 94, 0.5), 0 0 20px rgba(34, 197, 94, 0.3);
+  }
+  .box-glow-amber {
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.15), inset 0 0 15px rgba(245, 158, 11, 0.05);
+  }
+  .box-glow-green {
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.15), inset 0 0 15px rgba(34, 197, 94, 0.05);
+  }
+}
+
+/* Scanline overlay */
+.scanlines::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.05) 2px,
+    rgba(0, 0, 0, 0.05) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Pulse animation for active elements */
+@keyframes forge-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+.forge-pulse {
+  animation: forge-pulse 2s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.cursor-blink {
+  animation: blink 1s step-end infinite;
 }
