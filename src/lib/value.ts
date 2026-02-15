@@ -1,37 +1,43 @@
 /**
  * Autograd Value class — TypeScript port of Karpathy's scalar autograd engine.
- * Tracks computation graphs and computes gradients via backpropagation.
+ * Optimized to match microgpt.js: direct child fields + generation counter for topo sort.
  */
+
+let _gen = 0; // global generation counter for topological sorting
 
 export class Value {
   data: number;
   grad: number;
-  private _children: Value[];
-  private _localGrads: number[];
+  _c0: Value | undefined;  // first child
+  _c1: Value | undefined;  // second child
+  _lg0: number;            // local grad w.r.t. first child
+  _lg1: number;            // local grad w.r.t. second child
+  _nch: number;            // number of children (0, 1, or 2)
+  _gen: number;            // generation marker for topo sort
 
   constructor(data: number, children: Value[] = [], localGrads: number[] = []) {
     this.data = data;
     this.grad = 0;
-    this._children = children;
-    this._localGrads = localGrads;
+    this._c0 = children[0];
+    this._c1 = children[1];
+    this._lg0 = localGrads[0] ?? 0;
+    this._lg1 = localGrads[1] ?? 0;
+    this._nch = children.length;
+    this._gen = 0;
   }
 
   add(other: Value | number): Value {
-    const o = other instanceof Value ? other : new Value(other);
-    return new Value(this.data + o.data, [this, o], [1, 1]);
+    if (other instanceof Value) return new Value(this.data + other.data, [this, other], [1, 1]);
+    return new Value(this.data + other, [this], [1]);
   }
 
   mul(other: Value | number): Value {
-    const o = other instanceof Value ? other : new Value(other);
-    return new Value(this.data * o.data, [this, o], [o.data, this.data]);
+    if (other instanceof Value) return new Value(this.data * other.data, [this, other], [other.data, this.data]);
+    return new Value(this.data * other, [this], [other]);
   }
 
   pow(exp: number): Value {
-    return new Value(
-      this.data ** exp,
-      [this],
-      [exp * this.data ** (exp - 1)]
-    );
+    return new Value(this.data ** exp, [this], [exp * this.data ** (exp - 1)]);
   }
 
   log(): Value {
@@ -44,49 +50,41 @@ export class Value {
   }
 
   relu(): Value {
-    return new Value(
-      Math.max(0, this.data),
-      [this],
-      [this.data > 0 ? 1 : 0]
-    );
+    return new Value(Math.max(0, this.data), [this], [+(this.data > 0)]);
   }
 
   neg(): Value {
-    return this.mul(-1);
+    return new Value(-this.data, [this], [-1]);
   }
 
   sub(other: Value | number): Value {
-    const o = other instanceof Value ? other : new Value(other);
-    return this.add(o.neg());
+    return this.add(other instanceof Value ? other.neg() : -other);
   }
 
   div(other: Value | number): Value {
-    const o = other instanceof Value ? other : new Value(other);
-    return this.mul(o.pow(-1));
+    return this.mul(other instanceof Value ? other.pow(-1) : 1 / other);
   }
 
   backward(): void {
+    const gen = ++_gen;
     const topo: Value[] = [];
-    const visited = new Set<Value>();
 
-    const buildTopo = (v: Value) => {
-      if (!visited.has(v)) {
-        visited.add(v);
-        for (const child of v._children) {
-          buildTopo(child);
-        }
-        topo.push(v);
-      }
-    };
+    function buildTopo(v: Value) {
+      if (v._gen === gen) return;
+      v._gen = gen;
+      if (v._nch >= 1) buildTopo(v._c0!);
+      if (v._nch === 2) buildTopo(v._c1!);
+      topo.push(v);
+    }
 
     buildTopo(this);
     this.grad = 1;
 
-    for (let i = topo.length - 1; i >= 0; i--) {
+    for (let i = topo.length - 1; i >= 0; --i) {
       const v = topo[i];
-      for (let j = 0; j < v._children.length; j++) {
-        v._children[j].grad += v._localGrads[j] * v.grad;
-      }
+      const g = v.grad;
+      if (v._nch >= 1) v._c0!.grad += v._lg0 * g;
+      if (v._nch === 2) v._c1!.grad += v._lg1 * g;
     }
   }
 }
@@ -98,9 +96,5 @@ export function smul(n: number, v: Value): Value {
 
 // Helper: sum an array of Values
 export function vsum(vals: Value[]): Value {
-  let result = vals[0];
-  for (let i = 1; i < vals.length; i++) {
-    result = result.add(vals[i]);
-  }
-  return result;
+  return vals.reduce((a, b) => a.add(b));
 }

@@ -9,39 +9,96 @@
 import { Value, vsum } from "./value";
 import { NAMES } from "./names-data";
 
-// --- Seeded PRNG (deterministic like Python's random.seed(42)) ---
-class SeededRandom {
-  private s: number;
+// --- Mersenne Twister PRNG (matches Python's random module exactly) ---
+class MersenneTwister {
+  private mt = new Uint32Array(624);
+  private idx = 625;
+  private _gaussNext: number | null = null;
+
   constructor(seed: number) {
-    this.s = seed;
+    this.seed(seed);
   }
-  next(): number {
-    this.s = (this.s * 1664525 + 1013904223) & 0xffffffff;
-    return (this.s >>> 0) / 0xffffffff;
-  }
-  gauss(mean: number, std: number): number {
-    // Box-Muller transform
-    const u1 = this.next();
-    const u2 = this.next();
-    const z = Math.sqrt(-2 * Math.log(u1 + 1e-10)) * Math.cos(2 * Math.PI * u2);
-    return mean + std * z;
-  }
-  shuffle<T>(arr: T[]): T[] {
-    const a = [...arr];
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(this.next() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
+
+  seed(n: number): void {
+    const u = (a: number, b: number) => Math.imul(a, b) >>> 0;
+    const key: number[] = [];
+    for (let v = n || 0; v > 0; v = Math.floor(v / 0x100000000)) key.push(v & 0xffffffff);
+    if (!key.length) key.push(0);
+
+    this.mt[0] = 19650218;
+    for (this.idx = 1; this.idx < 624; ++this.idx) {
+      this.mt[this.idx] = (u(1812433253, this.mt[this.idx - 1] ^ (this.mt[this.idx - 1] >>> 30)) + this.idx) >>> 0;
     }
-    return a;
-  }
-  choices(weights: number[]): number {
-    const total = weights.reduce((a, b) => a + b, 0);
-    let r = this.next() * total;
-    for (let i = 0; i < weights.length; i++) {
-      r -= weights[i];
-      if (r <= 0) return i;
+
+    let i = 1, j = 0;
+    for (let k = Math.max(624, key.length); k > 0; --k, ++i, ++j) {
+      if (i >= 624) { this.mt[0] = this.mt[623]; i = 1; }
+      if (j >= key.length) j = 0;
+      this.mt[i] = ((this.mt[i] ^ u(this.mt[i - 1] ^ (this.mt[i - 1] >>> 30), 1664525)) + key[j] + j) >>> 0;
     }
-    return weights.length - 1;
+    for (let k = 623; k > 0; --k, ++i) {
+      if (i >= 624) { this.mt[0] = this.mt[623]; i = 1; }
+      this.mt[i] = ((this.mt[i] ^ u(this.mt[i - 1] ^ (this.mt[i - 1] >>> 30), 1566083941)) - i) >>> 0;
+    }
+    this.mt[0] = 0x80000000;
+    this.idx = 624;
+    this._gaussNext = null;
+  }
+
+  int32(): number {
+    if (this.idx >= 624) {
+      for (let k = 0; k < 624; ++k) {
+        const y = (this.mt[k] & 0x80000000) | (this.mt[(k + 1) % 624] & 0x7fffffff);
+        this.mt[k] = (this.mt[(k + 397) % 624] ^ (y >>> 1) ^ (y & 1 ? 0x9908b0df : 0)) >>> 0;
+      }
+      this.idx = 0;
+    }
+    let y = this.mt[this.idx++];
+    y ^= y >>> 11;
+    y ^= (y << 7) & 0x9d2c5680;
+    y ^= (y << 15) & 0xefc60000;
+    y ^= y >>> 18;
+    return y >>> 0;
+  }
+
+  random(): number {
+    return ((this.int32() >>> 5) * 67108864.0 + (this.int32() >>> 6)) / 9007199254740992.0;
+  }
+
+  gauss(mu = 0, sigma = 1): number {
+    let z = this._gaussNext;
+    this._gaussNext = null;
+    if (z === null) {
+      const x2pi = this.random() * 2 * Math.PI;
+      const g2rad = Math.sqrt(-2 * Math.log(1 - this.random()));
+      z = Math.cos(x2pi) * g2rad;
+      this._gaussNext = Math.sin(x2pi) * g2rad;
+    }
+    return mu + z * sigma;
+  }
+
+  shuffle<T>(arr: T[]): void {
+    for (let i = arr.length - 1; i > 0; --i) {
+      const k = 32 - Math.clz32(i + 1);
+      let r = this.int32() >>> (32 - k);
+      while (r > i) r = this.int32() >>> (32 - k);
+      const t = arr[i];
+      arr[i] = arr[r];
+      arr[r] = t;
+    }
+  }
+
+  choices(population: number[], weights: number[]): number {
+    const cum = new Float64Array(weights.length);
+    cum[0] = weights[0];
+    for (let i = 1; i < weights.length; i++) cum[i] = cum[i - 1] + weights[i];
+    const x = this.random() * cum[cum.length - 1];
+    let lo = 0, hi = cum.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      x < cum[mid] ? hi = mid : lo = mid + 1;
+    }
+    return population[lo];
   }
 }
 
@@ -61,6 +118,7 @@ export function createTokenizer(docs: string[]): Tokenizer {
     for (const ch of doc) charSet.add(ch);
   }
   const uchars = [...charSet].sort();
+  const charToId = new Map(uchars.map((ch, i) => [ch, i]));
   const BOS = uchars.length;
   const vocabSize = uchars.length + 1;
 
@@ -68,7 +126,7 @@ export function createTokenizer(docs: string[]): Tokenizer {
     uchars,
     BOS,
     vocabSize,
-    encode: (s: string) => [BOS, ...s.split("").map((ch) => uchars.indexOf(ch)), BOS],
+    encode: (s: string) => [BOS, ...Array.from(s, (ch) => charToId.get(ch)!), BOS],
     decode: (ids: number[]) => ids.filter((id) => id !== BOS).map((id) => uchars[id]).join(""),
     tokenToChar: (id: number) => (id === BOS ? "<BOS>" : uchars[id] ?? "?"),
   };
@@ -126,12 +184,12 @@ export class GPTModel {
   stateDict: StateDict;
   params: Value[];
   tokenizer: Tokenizer;
-  private rng: SeededRandom;
+  private rng: MersenneTwister;
   private docs: string[];
 
   // Adam optimizer state
-  private m: number[];
-  private v: number[];
+  private m: Float64Array;
+  private v: Float64Array;
   private step: number;
   private learningRate: number;
   private beta1: number;
@@ -139,8 +197,9 @@ export class GPTModel {
   private epsAdam: number;
 
   constructor(seed = 42) {
-    this.rng = new SeededRandom(seed);
-    this.docs = this.rng.shuffle(NAMES);
+    this.rng = new MersenneTwister(seed);
+    this.docs = [...NAMES];
+    this.rng.shuffle(this.docs);
     this.tokenizer = createTokenizer(this.docs);
 
     this.config = {
@@ -190,8 +249,8 @@ export class GPTModel {
     }
 
     // Adam state
-    this.m = new Array(this.params.length).fill(0);
-    this.v = new Array(this.params.length).fill(0);
+    this.m = new Float64Array(this.params.length);
+    this.v = new Float64Array(this.params.length);
     this.step = 0;
     this.learningRate = 0.01;
     this.beta1 = 0.85;
@@ -220,9 +279,9 @@ export class GPTModel {
   }
 
   private rmsnorm(x: Value[]): Value[] {
-    const ms = vsum(x.map((xi) => xi.mul(xi))).div(x.length);
-    const scale = ms.add(1e-5).pow(-0.5);
-    return x.map((xi) => xi.mul(scale));
+    const ms = vsum(x.map((xi) => xi.mul(xi))).mul(1 / x.length);
+    const s = ms.add(1e-5).pow(-0.5);
+    return x.map((xi) => xi.mul(s));
   }
 
   // Forward pass for a single token
@@ -235,6 +294,7 @@ export class GPTModel {
   ): ForwardResult {
     const { nEmbd, nHead, nLayer } = this.config;
     const headDim = nEmbd / nHead;
+    const scale = 1 / headDim ** 0.5;
     const attentionData: AttentionData[] = [];
 
     // Token + position embedding
@@ -262,7 +322,7 @@ export class GPTModel {
 
         // Compute attention logits
         const attnLogits = kH.map((kt) =>
-          vsum(qH.map((qj, j) => qj.mul(kt[j]))).div(Math.sqrt(headDim))
+          vsum(qH.map((qj, j) => qj.mul(kt[j]))).mul(scale)
         );
 
         const attnWeights = this.softmax(attnLogits);
@@ -333,19 +393,21 @@ export class GPTModel {
       }
     }
 
-    const loss = vsum(losses).div(n);
+    const loss = vsum(losses).mul(1 / n);
 
     // Backward
     loss.backward();
 
     // Adam update
-    const lrT = this.learningRate * Math.max(0.01, 1 - this.step / numSteps);
+    const lrT = this.learningRate * (1 - this.step / numSteps);
+    const bc1 = 1 - this.beta1 ** (this.step + 1);
+    const bc2 = 1 - this.beta2 ** (this.step + 1);
     for (let i = 0; i < this.params.length; i++) {
       const p = this.params[i];
       this.m[i] = this.beta1 * this.m[i] + (1 - this.beta1) * p.grad;
       this.v[i] = this.beta2 * this.v[i] + (1 - this.beta2) * p.grad ** 2;
-      const mHat = this.m[i] / (1 - this.beta1 ** (this.step + 1));
-      const vHat = this.v[i] / (1 - this.beta2 ** (this.step + 1));
+      const mHat = this.m[i] / bc1;
+      const vHat = this.v[i] / bc2;
       p.data -= lrT * mHat / (Math.sqrt(vHat) + this.epsAdam);
       p.grad = 0;
     }
@@ -375,12 +437,13 @@ export class GPTModel {
       const { logits, attentionData } = this.forward(tokenId, posId, keys, vals, true);
 
       // Apply temperature
-      const scaledLogits = logits.map((l) => l.div(Math.max(temperature, 0.01)));
+      const scaledLogits = logits.map((l) => l.div(temperature));
       const probs = this.softmax(scaledLogits);
 
       // Sample
+      const tokenPool = Array.from({ length: this.config.vocabSize }, (_, i) => i);
       const weights = probs.map((p) => p.data);
-      tokenId = this.rng.choices(weights);
+      tokenId = this.rng.choices(tokenPool, weights);
 
       if (tokenId === this.tokenizer.BOS) break;
 
