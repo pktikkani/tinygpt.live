@@ -108,8 +108,8 @@ export default function Home() {
               </span>
               <span className="text-muted/50">→</span>
               <span className="text-muted">
-                <span className="text-green font-bold">③</span> Click H0–H3 to
-                see what each head learned
+                <span className="text-green font-bold">③</span> Click H0–H3 in
+                the Attention Heads panel to see what each head learned
               </span>
             </motion.div>
           </motion.div>

@@ -17,18 +17,7 @@ export default function AttentionHeatmap({
 }: Props) {
   const [selectedHead, setSelectedHead] = useState(0);
 
-  if (!attentionData.length || !tokenChars.length) {
-    return (
-      <div className="rounded-lg border border-surface-border bg-surface p-4">
-        <h3 className="text-amber text-sm font-bold tracking-wider uppercase mb-3">
-          Attention Heads
-        </h3>
-        <div className="text-muted flex h-40 items-center justify-center text-sm">
-          Train or generate to see attention patterns
-        </div>
-      </div>
-    );
-  }
+  const hasData = attentionData.length > 0 && tokenChars.length > 0;
 
   // Find attention data for selected head
   const headData = attentionData.find(
@@ -54,10 +43,13 @@ export default function AttentionHeatmap({
           <button
             key={h}
             onClick={() => setSelectedHead(h)}
+            disabled={!hasData}
             className={`rounded px-3 py-1 text-xs font-medium transition-all ${
-              selectedHead === h
-                ? "bg-green text-black"
-                : "border border-surface-border text-muted hover:text-foreground hover:border-green/50"
+              !hasData
+                ? "border border-surface-border text-muted/40 cursor-not-allowed"
+                : selectedHead === h
+                  ? "bg-green text-black"
+                  : "border border-surface-border text-muted hover:text-foreground hover:border-green/50"
             }`}
           >
             H{h}
@@ -65,6 +57,14 @@ export default function AttentionHeatmap({
         ))}
       </div>
 
+      {!hasData && (
+        <div className="text-muted flex h-40 items-center justify-center text-sm">
+          Train or generate to light these up
+        </div>
+      )}
+
+      {hasData && (
+        <>
       {/* Heatmap grid */}
       <div className="overflow-x-auto">
         <div className="inline-block">
@@ -122,6 +122,8 @@ export default function AttentionHeatmap({
       <div className="text-muted mt-2 text-[10px]">
         Rows = query token, Cols = key token. Brighter = higher attention.
       </div>
+        </>
+      )}
     </div>
   );
 }
