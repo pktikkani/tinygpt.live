@@ -8,15 +8,15 @@ export default function Navigation() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-surface-border bg-background/90 backdrop-blur-sm">
-      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
         <Link href="/" className="flex items-center gap-2">
           <span className="text-amber glow-amber text-lg font-bold tracking-wider">
             tinyGPT
           </span>
-          <span className="text-muted text-xs">v0.1</span>
+          <span className="text-muted hidden text-xs sm:inline">v0.1</span>
         </Link>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3 sm:gap-6">
           <Link
             href="/learn"
             className={`text-sm transition-colors ${

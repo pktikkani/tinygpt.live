@@ -49,7 +49,7 @@ export default function LearnPage() {
       <Navigation />
 
       <div className="pt-14">
-        <div className="mx-auto max-w-7xl px-6 py-8">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
           {/* Header: progress + mode toggle */}
           <div className="mx-auto mb-8 flex max-w-3xl flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-1.5">
@@ -199,7 +199,7 @@ function Welcome({ mode, onStart }: { mode: LearnMode; onStart: () => void }) {
         />
       </motion.div>
 
-      <h1 className="text-amber glow-amber mb-3 text-3xl font-bold tracking-wide">
+      <h1 className="text-amber glow-amber mb-3 text-2xl font-bold tracking-wide sm:text-3xl">
         How Does a Computer Learn to Write?
       </h1>
       <p className="text-muted mx-auto mb-2 max-w-lg text-sm leading-relaxed">

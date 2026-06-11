@@ -75,7 +75,7 @@ export default function Finale({ mode, playerName }: Props) {
           initial={{ scale: 0.5, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 200, damping: 12 }}
-          className="text-amber glow-amber mb-2 text-3xl font-bold"
+          className="text-amber glow-amber mb-2 text-2xl font-bold sm:text-3xl"
         >
           🎉 You did it, {displayName}!
         </motion.h2>

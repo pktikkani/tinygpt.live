@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist_Mono } from "next/font/google";
 import "./globals.css";
+import PwaRegister from "@/components/PwaRegister";
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -11,6 +12,29 @@ export const metadata: Metadata = {
   title: "tinyGPT — Interactive GPT Visualizer",
   description:
     "Watch tokens flow through a real GPT in your browser. Inspect attention heads, control temperature, step through training.",
+  applicationName: "tinyGPT",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "tinyGPT",
+  },
+  icons: {
+    icon: [
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fafafa" },
+    { media: "(prefers-color-scheme: dark)", color: "#050505" },
+  ],
 };
 
 export default function RootLayout({
@@ -20,7 +44,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistMono.variable} antialiased`}>{children}</body>
+      <body className={`${geistMono.variable} antialiased`}>
+        {children}
+        <PwaRegister />
+      </body>
     </html>
   );
 }

@@ -34,7 +34,7 @@ export default function ChapterShell({ emoji, title, simple, nerd, mode, childre
         >
           {emoji}
         </motion.span>
-        <h2 className="text-amber glow-amber text-2xl font-bold tracking-wide">{title}</h2>
+        <h2 className="text-amber glow-amber text-xl font-bold tracking-wide sm:text-2xl">{title}</h2>
       </div>
 
       <motion.div

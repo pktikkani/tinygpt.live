@@ -152,7 +152,7 @@ export default function GuessGame({ model, mode, variant, onDone }: Props) {
         </div>
 
         {/* The name being guessed */}
-        <div className="mb-6 flex flex-wrap items-center justify-center gap-2">
+        <div className="mb-6 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
           {name.split("").map((ch, i) => {
             const isRevealed = i < revealed;
             const isNext = i === revealed && !finished;
@@ -165,7 +165,7 @@ export default function GuessGame({ model, mode, variant, onDone }: Props) {
                     : {}
                 }
                 transition={{ duration: 1.2, repeat: isNext ? Infinity : 0 }}
-                className={`flex h-14 w-12 items-center justify-center rounded-lg border-2 text-2xl font-bold ${
+                className={`flex h-11 w-9 items-center justify-center rounded-lg border-2 text-lg font-bold sm:h-14 sm:w-12 sm:text-2xl ${
                   isRevealed
                     ? "border-green/40 bg-green/10 text-green"
                     : isNext
