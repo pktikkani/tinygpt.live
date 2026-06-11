@@ -59,6 +59,17 @@ export default function Home() {
               attention heads, watch tokens flow.
             </p>
 
+            <motion.a
+              href="/learn"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="mt-4 inline-flex items-center gap-2 rounded-lg border border-amber/40 bg-amber/10 px-4 py-2 text-sm font-bold text-amber transition-colors hover:bg-amber/20"
+            >
+              ✨ New here? Take the animated tour — learn how a GPT works, for
+              ages 6 to 106 →
+            </motion.a>
+
             {/* Stats bar */}
             <div className="mt-4 flex flex-wrap gap-4">
               {[

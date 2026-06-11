@@ -4,6 +4,19 @@ A real GPT running entirely in your browser. No backend, no API keys — just a 
 
 Inspired by [Andrej Karpathy's](https://gist.github.com/karpathy/8627fe009c40f57531cb18360106ce95) beautifully minimal pure-Python GPT — "the most atomic way to train and inference a GPT" — ported entirely to TypeScript and wrapped in an interactive visualization. Watch tokens flow through attention heads, step through training, inspect what the model learns, and generate names with adjustable temperature.
 
+## Learn Mode — for ages 6 to 106 ✨
+
+An animated, guided adventure at `/learn` that teaches how a transformer works — no background needed. You meet **Tiny**, a robot whose brain is a real 5,000-parameter GPT, and:
+
+1. **Letters Become Numbers** — type your name, watch it tokenize with flip animations
+2. **The Guessing Game** — you vs. the untrained model: who predicts the next letter better?
+3. **Robot School** — real gradient descent with an animated "confusion meter" (loss), plus before/after generated names
+4. **The Rematch** — play again against the trained model and watch it win
+5. **The Attention Spotlight** — real attention weights drawn as animated spotlight beams between letters
+6. **The Silliness Dial** — temperature, explained with wobbling name cards
+
+Every chapter has a **🧒 Simple / 🔬 Technical** toggle — the same demos explain tokenization to a kid and softmax temperature to an engineer. Nothing is canned: every animation is driven by live forward passes and real gradients.
+
 ## What You Can Do
 
 - **Train step-by-step** — Click "Step" and watch the loss drop from ~3.3 (random guessing) to under 1.0 (actually learned). Set a target loss and let it auto-train.

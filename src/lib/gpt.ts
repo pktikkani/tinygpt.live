@@ -471,6 +471,45 @@ export class GPTModel {
     };
   }
 
+  // Run a prefix through the model and return next-token probabilities
+  // plus the attention pattern over the prefix (for visualization).
+  predictNext(prefix: string, temperature = 1.0): {
+    probs: number[];
+    topTokens: { id: number; char: string; prob: number }[];
+    attentionData: AttentionData[];
+  } {
+    const { nLayer, blockSize } = this.config;
+    const keys: Value[][][] = Array.from({ length: nLayer }, () => []);
+    const vals: Value[][][] = Array.from({ length: nLayer }, () => []);
+    // encode() wraps with BOS on both sides; drop the trailing BOS
+    const ids = this.tokenizer.encode(prefix).slice(0, -1).slice(0, blockSize);
+    let logits: Value[] = [];
+    const allAttention: AttentionData[] = [];
+
+    for (let posId = 0; posId < ids.length; posId++) {
+      const res = this.forward(ids[posId], posId, keys, vals, true);
+      logits = res.logits;
+      for (const ad of res.attentionData) {
+        const existing = allAttention.find(
+          (a) => a.layer === ad.layer && a.head === ad.head
+        );
+        if (existing) {
+          existing.weights.push(ad.weights[0]);
+        } else {
+          allAttention.push({ ...ad });
+        }
+      }
+    }
+
+    const scaled = logits.map((l) => l.div(temperature));
+    const probs = this.softmax(scaled).map((p) => p.data);
+    const topTokens = probs
+      .map((prob, id) => ({ id, char: this.tokenizer.tokenToChar(id), prob }))
+      .sort((a, b) => b.prob - a.prob);
+
+    return { probs, topTokens, attentionData: allAttention };
+  }
+
   // Generate multiple samples
   generateBatch(count: number, temperature = 0.5): GenerateResult[] {
     const results: GenerateResult[] = [];

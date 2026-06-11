@@ -18,6 +18,16 @@ export default function Navigation() {
 
         <div className="flex items-center gap-6">
           <Link
+            href="/learn"
+            className={`text-sm transition-colors ${
+              pathname === "/learn"
+                ? "text-amber glow-amber"
+                : "text-muted hover:text-foreground"
+            }`}
+          >
+            [learn ✨]
+          </Link>
+          <Link
             href="/"
             className={`text-sm transition-colors ${
               pathname === "/"
