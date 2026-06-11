@@ -8,8 +8,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Resolves to the custom domain once one is attached to the Vercel project;
+// until then social cards use the canonical *.vercel.app production URL.
+const siteUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
+  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  : "https://tinygpt.live";
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://tinygpt.live"),
+  metadataBase: new URL(siteUrl),
   title: "tinyGPT — Interactive GPT Visualizer",
   description:
     "Watch tokens flow through a real GPT in your browser. Inspect attention heads, control temperature, step through training.",
@@ -18,7 +24,7 @@ export const metadata: Metadata = {
     title: "tinyGPT — A real GPT in your browser",
     description:
       "Train a real transformer in your browser, play guessing games against it, and see attention with your own eyes. For kids and engineers alike.",
-    url: "https://tinygpt.live",
+    url: siteUrl,
     siteName: "tinyGPT",
     type: "website",
   },
